@@ -8,7 +8,6 @@ import path from 'path';
 import helmet from 'helmet';
 import express, { Request, Response, NextFunction } from 'express';
 import logger from 'jet-logger';
-
 import 'express-async-errors';
 
 import BaseRouter from '@src/routes/api';
@@ -26,6 +25,7 @@ import { Socket } from 'dgram';
 import { UserManager } from './UserManger';
 import { User } from './util/UserInterface';
 import { Offer } from './util/OfferInterface';
+import cors from "cors";
 // **** Variables **** //
 
 const app = express();
@@ -40,7 +40,7 @@ const userManager = new UserManager();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser(EnvVars.CookieProps.Secret));
-
+app.use(cors);
 // Show routes called in console during development
 if (EnvVars.NodeEnv === NodeEnvs.Dev.valueOf()) {
   app.use(morgan('dev'));
