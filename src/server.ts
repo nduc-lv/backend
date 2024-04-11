@@ -21,7 +21,6 @@ import { RouteError } from '@src/other/classes';
 
 import http from 'http';
 import * as socketio from "socket.io";
-import { Socket } from 'dgram';
 import { UserManager } from './UserManger';
 import { User } from './util/UserInterface';
 import { Offer } from './util/OfferInterface';
@@ -121,8 +120,21 @@ io.on("connection", (socket: socketio.Socket) => {
   });
   socket.on("share-video", (roomId:string) => {
     socket.to(roomId).emit("sharing");
+  });
+  socket.on("watch-video", (roomId:string, videoId:string)=>{
+    console.log("watch-video", roomId, videoId);
+    socket.to(roomId).emit('found-video',videoId);
+  });
+  socket.on("video-seek", (roomId, timeToSeek) => {
+    socket.to(roomId).emit("video-seek", timeToSeek);
+  });
+  socket.on('video-stop', (roomId) => {
+    socket.to(roomId).emit("video-stop");
+  });
+  socket.on("video-play", (roomId) => {
+    socket.to(roomId).emit("video-play");
   })
-})
+});
 
 // **** Export default **** //
 

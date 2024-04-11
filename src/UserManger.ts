@@ -25,6 +25,7 @@ export class UserManager{
         let candidate:User;
         let candidateIndex = -1;
         if (this.waitlist.length == 0){
+            console.log("waiting queue is empty");
             this.waitlist.push(user);
         }
         else{
@@ -43,6 +44,7 @@ export class UserManager{
                     continue;
                 }
                 if (user.profile.age != this.waitlist[i].profile.age){
+                    console.log("age");
                     continue;
                 }
                 // priority gender and sexual interests
@@ -56,14 +58,12 @@ export class UserManager{
                 // }
                 if (user.profile.sexualInterests == 2){
                     if (this.waitlist[i].profile.sexualInterests != 2 && this.waitlist[i].profile.sexualInterests != user.profile.gender){
+                        console.log("gender 1");
                         continue;
                     }
                 }
                 else if (user.profile.sexualInterests != this.waitlist[i].profile.gender || this.waitlist[i].profile.sexualInterests != user.profile.gender){
-                    console.log("user gender", user.profile.gender);
-                    console.log("user interests", user.profile.sexualInterests);
-                    console.log("candidate gender", this.waitlist[i].profile.gender);
-                    console.log("candidate interest", this.waitlist[i].profile.sexualInterests);
+                    console.log("gender 2");
                     continue;
                 }
                 // match interests
