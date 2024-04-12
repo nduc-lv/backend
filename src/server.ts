@@ -39,7 +39,7 @@ const userManager = new UserManager();
 app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser(EnvVars.CookieProps.Secret));
-app.use(cors);
+app.use(cors());
 // Show routes called in console during development
 if (EnvVars.NodeEnv === NodeEnvs.Dev.valueOf()) {
   app.use(morgan('dev'));
@@ -95,6 +95,7 @@ app.get('/users', (_: Request, res: Response) => {
 
 io.on("connection", (socket: socketio.Socket) => {
   console.log("a new user connected", socket.id);
+  socket.join(socket.id);
   // add interest
   socket.on("match-user", (offer: Offer) => {
     // get offer instead of userName
@@ -133,8 +134,24 @@ io.on("connection", (socket: socketio.Socket) => {
   });
   socket.on("video-play", (roomId) => {
     socket.to(roomId).emit("video-play");
+  });
+  socket.on("peer-success", (id:string) => {
+    io.to(socket.id).emit("peer-success");
+  });
+  socket.on("peer-fail", (id:string)=>{
+    io.to(id).emit("peer-fail");
+  });
+  socket.on("connection-ebstablished", (id:string)=>{
+    io.to(id).emit("connection-ebstablished");
+  })
+  socket.on("connection-failed", (id:string) => {
+    io.to(id).emit("connection-failed");
+  });
+  socket.on("reconnect", (id:string) => {
+    io.to(id).emit("reconnect");
   })
 });
+
 
 // **** Export default **** //
 

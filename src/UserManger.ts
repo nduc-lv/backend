@@ -34,8 +34,7 @@ export class UserManager{
                 console.log("and here")
                 // need to have a more sophisticated algorithm to match
                 if (user.userId == this.waitlist[i].userId){
-                    console.log("true?")
-                    console.log(user.userId, this.waitlist[i].userId);
+                    console.log("same user");
                     continue;
                 }
                 // priority language
@@ -69,15 +68,9 @@ export class UserManager{
                 // match interests
                 let currScore = 0;
                 for (let j = 0; j < 5; j++){
-                    console.log(this.waitlist[i].profile.interests);
-                    console.log(user.profile.interests);
                     if (this.waitlist[i].profile.interests.includes(user.profile.interests[j])){
-                        console.log(this.waitlist[i].profile.interests);
-                        console.log(user.profile.interests);
+                        console.log("match + 1");
                         currScore += 1;
-                    }
-                    else{
-                        console.log("not match")
                     }
                 }
                 if (currScore > maxScore){
@@ -94,9 +87,11 @@ export class UserManager{
                 // }
             }
             if (maxScore == 0){
+                console.log("no matched candidate")
                 this.waitlist.push(user);  
             }
             else{
+                console.log("found peer")
                 const roomId = v4();
                 console.log(user.socket.id);
                 user.socket.emit("found-peer", roomId);
