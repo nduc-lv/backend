@@ -1,10 +1,10 @@
 # VIDEO CHAT - BACK END - PROJECT-II COURSE'S ASSINGMENT
-This is the back-end code for a [video chat website](https://github.com/nduc-lv/front-end) project <br>
+This is the back-end code for a [video chat website](https://github.com/nduc-lv/video-chat-frontend) project <br>
 
 ## Tech stack:
 - Built with **Express** and **Typescript**
 - Deployed with **Google App Engine**
-- Using **SocketIO** for connecting to the [front-end](https://github.com/nduc-lv/front-end)
+- Using **SocketIO** for connecting to the [front-end](https://github.com/nduc-lv/video-chat-frontend)
 
 ## Getting started
 ### With npm
