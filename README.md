@@ -1,44 +1,19 @@
-## About
+# VIDEO CHAT - BACK END - PROJECT-II COURSE'S ASSINGMENT
+This is the back-end code for a [video chat website](https://github.com/nduc-lv/front-end) project <br>
 
-This project was created with [express-generator-typescript](https://github.com/seanpmaxwell/express-generator-typescript).
+## Tech stack:
+- Built with **Express** and **Typescript**
+- Deployed with **Google App Engine**
+- Using **SocketIO** for connecting to the [front-end](https://github.com/nduc-lv/front-end)
 
-
-## Available Scripts
-
-### `npm run dev`
-
-Run the server in development mode.
-
-### `npm test`
-
-Run all unit-tests with hot-reloading.
-
-### `npm test -- --testFile="name of test file" (i.e. --testFile=Users).`
-
-Run a single unit-test.
-
-### `npm run test:no-reloading`
-
-Run all unit-tests without hot-reloading.
-
-### `npm run lint`
-
-Check for linting errors.
-
-### `npm run build`
-
-Build the project for production.
-
-### `npm start`
-
-Run the production build (Must be built first).
-
-### `npm start -- --env="name of env file" (default is production).`
-
-Run production build with a different env file.
-
-
-## Additional Notes
-
-- If `npm run dev` gives you issues with bcrypt on MacOS you may need to run: `npm rebuild bcrypt --build-from-source`. 
-# backend
+## Getting started
+### With npm
+*Required Node* <br>
+Install the dependencies before starting the project <br>
+`$ npm install`<br>
+Run the app in the development mode. (Visit: http://localhost:3000) <br>
+`$ npm run dev` <br>
+Build the app <br>
+`$ npm run build`  
+Run the app in the production mode. (Visit: http://localhost:3000)  
+`$ npm start`
