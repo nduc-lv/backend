@@ -149,6 +149,9 @@ io.on("connection", (socket: socketio.Socket) => {
   });
   socket.on("reconnect", (id:string) => {
     io.to(id).emit("reconnect");
+  });
+  socket.on("text-messages", (message, roomId) => {
+    socket.to(roomId).emit("text-messages", message);
   })
 });
 

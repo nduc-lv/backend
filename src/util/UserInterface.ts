@@ -35,6 +35,7 @@ import { Socket } from "socket.io"
 // type BookGenre = ComputeRange<MAXIMUM_ALLOWED_BOUNDARY>[10]
 type Gender = 0 | 1 // 0 -> male, 1 -> female
 export interface Profile{
+    name: string,
     age: number,
     gender: number,
     sexualInterests: number

@@ -91,11 +91,11 @@ export class UserManager{
                 this.waitlist.push(user);  
             }
             else{
-                console.log("found peer")
+                console.log("found peer", candidate!.profile.name);
                 const roomId = v4();
                 console.log(user.socket.id);
-                user.socket.emit("found-peer", roomId);
-                candidate!.socket.emit("found-peer", roomId);
+                user.socket.emit("found-peer", roomId, candidate!.profile.name);
+                candidate!.socket.emit("found-peer", roomId, user.profile.name);
                 this.waitlist.splice(candidateIndex, 1);
             }
             
