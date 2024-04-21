@@ -24,7 +24,9 @@ import * as socketio from "socket.io";
 import { UserManager } from './UserManger';
 import { User } from './util/UserInterface';
 import { Offer } from './util/OfferInterface';
+import { RoomProfileInterface } from './util/RoomProfileInterface';
 import cors from "cors";
+import { RoomManger } from './RoomManager';
 // **** Variables **** //
 
 const app = express();
@@ -33,6 +35,7 @@ const io = new socketio.Server(server, {cors: {
   origin: '*',
 }});
 const userManager = new UserManager();
+const roomManger = new RoomManger(); 
 // **** Setup **** //
 
 // Basic middleware
@@ -96,6 +99,7 @@ app.get('/users', (_: Request, res: Response) => {
 io.on("connection", (socket: socketio.Socket) => {
   console.log("a new user connected", socket.id);
   socket.join(socket.id);
+  socket.emit("room-list", roomManger.getRooms());
   // add interest
   socket.on("match-user", (offer: Offer) => {
     // get offer instead of userName
@@ -152,6 +156,22 @@ io.on("connection", (socket: socketio.Socket) => {
   });
   socket.on("text-messages", (message, roomId) => {
     socket.to(roomId).emit("text-messages", message);
+  })
+  socket.on("create-room", (roomProfile:RoomProfileInterface) => {
+    roomManger.addRoom(roomProfile);
+    const rooms = roomManger.getRooms();
+    io.emit("new-room-added", rooms);
+  })
+  socket.on("join-request", (socketId, name, gender) => {
+    socket.to(socketId).emit("join-request", {name, gender, socketId: socket.id})
+  })
+  socket.on("found-peer", (socketId, roomId, peerName) => {
+    console.log("found-peer", socket.id, socketId)
+    io.to(socketId).emit("found-peer", roomId, peerName)
+  })
+  socket.on("request-accepted", (socketId, roomId,name) => {
+    console.log("request-accepted")
+    socket.to(socketId).emit("request-accepted", roomId, name)
   })
 });
 
