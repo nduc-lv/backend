@@ -121,6 +121,8 @@ io.on("connection", (socket: socketio.Socket) => {
   socket.on("disconnect", (reason) => {
     // need to find which room this guy in
     userManager.removeUser(socket);
+    roomManger.deleteRoomBySocketId(socket.id)
+    io.emit("new-room-added", roomManger.getRooms());
     console.log(reason, socket.id);
   });
   socket.on("share-video", (roomId:string) => {
@@ -171,7 +173,19 @@ io.on("connection", (socket: socketio.Socket) => {
   })
   socket.on("request-accepted", (socketId, roomId,name) => {
     console.log("request-accepted")
+    roomManger.deleteRoomByRoomId(roomId);
+    io.except(socketId).emit("new-room-added", roomManger.getRooms());
     socket.to(socketId).emit("request-accepted", roomId, name)
+  });
+  socket.on("quit-room", (roomId) => {
+    roomManger.deleteRoomByRoomId(roomId);
+    io.emit("new-room-added", roomManger.getRooms());
+  })
+  socket.on("decline-user", (socketId) => {
+    socket.to(socketId).emit("request-declined")
+  })
+  socket.on("get-available-rooms", () => {
+    io.to(socket.id).emit("new-room-added", roomManger.getRooms());
   })
 });
 
