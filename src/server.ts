@@ -27,6 +27,7 @@ import { Offer } from './util/OfferInterface';
 import { RoomProfileInterface } from './util/RoomProfileInterface';
 import cors from "cors";
 import { RoomManger } from './RoomManager';
+import userRouter from '@src/routes/api';
 // **** Variables **** //
 
 const app = express();
@@ -95,6 +96,8 @@ app.get('/users', (_: Request, res: Response) => {
   return res.sendFile('users.html', { root: viewsDir });
 });
 
+app.use("/api", userRouter);
+
 
 io.on("connection", (socket: socketio.Socket) => {
   console.log("a new user connected", socket.id);
@@ -123,6 +126,20 @@ io.on("connection", (socket: socketio.Socket) => {
     userManager.removeUser(socket);
     roomManger.deleteRoomBySocketId(socket.id)
     io.emit("new-room-added", roomManger.getRooms());
+    const uid = roomManger.getSocketFollow(socket.id)
+    console.log(uid)
+    if (uid) {
+      console.log("logout", uid)
+      const followers = roomManger.getFollowers(uid);
+      console.log(followers)
+      if (followers){
+        for (let i = 0; i < followers?.length; i++){
+          console.log("send to", followers[i])
+          io.to(followers[i]).emit("logout", uid)
+        }
+      }
+      roomManger.deleteFollowRoom(uid)
+    }
     console.log(reason, socket.id);
   });
   socket.on("share-video", (roomId:string) => {
@@ -186,6 +203,80 @@ io.on("connection", (socket: socketio.Socket) => {
   })
   socket.on("get-available-rooms", () => {
     io.to(socket.id).emit("new-room-added", roomManger.getRooms());
+  })
+  socket.on("check-room", (socketId: string) => {
+    const exist:boolean = roomManger.checkRoom(socketId);
+    io.to(socket.id).emit("confirm-room", exist)
+  })
+  socket.on("alone-video-play", (socketId: string) => {
+    io.emit(`alone-video-play-${socketId}`);
+  })
+  socket.on("alone-video-stop", (socketId: string) => {
+    io.emit(`alone-video-stop-${socketId}`);
+  })
+  socket.on("alone-video-seek", (socketId: string, timeToSeek: number) => {
+    io.emit(`alone-video-seek-${socketId}`, timeToSeek)
+  })
+  socket.on('add-video', (socketId:string, videoId: string) => {
+    roomManger.addVideo(socketId, videoId);
+    const youtube = roomManger.getVideo(socketId)
+    io.emit(`preview-${socketId}`, youtube)
+  })
+  socket.on("remove-video", (socketId:string) => {
+    io.emit(`remove-video-${socketId}`)
+    roomManger.removeVideo(socketId)
+  })
+  socket.on("preview", (reqId: string, preWatchId: string) => {
+    const youtube = roomManger.getVideo(preWatchId)
+    io.to(reqId).emit(`preview-${preWatchId}`, youtube)
+  })
+  socket.on("get-latest", (reqId:string, toId:string) => {
+    io.to(toId).emit("get-latest", reqId)
+  })
+  socket.on("latest-timestamp", (timeStamp:number, socketId:string) => {
+    io.to(socketId).emit("latest-timestamp", timeStamp)
+  })
+  socket.on("follow", (uid:string, roomId:string) => {
+    socket.to(roomId).emit("follow", uid)
+  })
+  socket.on("follow-err", (roomId:string) => {
+    socket.to(roomId).emit("follow-err")
+  })
+  socket.on("follow-success", (roomId: string) => {
+    socket.to(roomId).emit("follow-success")
+  })
+  socket.on("login", (uid: string) => {
+    socket.join(uid)
+    roomManger.addFollowRoom(uid)
+    roomManger.addSocketFollow(socket.id, uid)
+  })
+  socket.on("notify", (uid2:string, name:string, uid1:string) => {
+    roomManger.addFollwedUser(uid1, uid2)
+    roomManger.addFollwedUser(uid2, uid1)
+    socket.to(uid2).emit("online", name, uid1);
+  })
+  socket.on("me-too", (uid1:string, name:string, uidFollow: string) => {
+    socket.to(uid1).emit("me-too", name, uidFollow);
+  })
+  socket.on("toggle-camera", (roomId:string, mode:boolean) => {
+    socket.to(roomId).emit("toggle-camera", mode)
+  })
+  socket.on("chat", (roomId: string, mode: string) => {
+    socket.to(roomId).emit("chat", mode)
+  })
+  socket.on("logout", (uid:string) => {
+    const followers = roomManger.getFollowers(uid);
+    if (followers){
+      for (let i = 0; i < followers.length; i++){
+        socket.to(followers[i]).emit("logout", uid)
+      }
+    }
+  })
+  socket.on("follow-dup", (roomId:string) => {
+    socket.to(roomId).emit("follow-dup")
+  })
+  socket.on("unfollowed", (uid: string, uid2: string) => {
+    socket.to(uid).emit("unfollowed", uid2)
   })
 });
 
