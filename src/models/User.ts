@@ -8,7 +8,7 @@ const UserSchema = new mongoose.Schema({
   password: {type: String, require: true},
   token: {type: String, require: true},
   followed: [{type: mongoose.Schema.Types.ObjectId, ref: "User"}],
-  age: {type: Number, require: true},
+  dateOfBirth: {type: Date, require: true},
   sexualInterests: {type: Number, require: true}
 });
 

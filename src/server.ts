@@ -28,6 +28,7 @@ import { RoomProfileInterface } from './util/RoomProfileInterface';
 import cors from "cors";
 import { RoomManger } from './RoomManager';
 import userRouter from '@src/routes/api';
+import mongoose from 'mongoose';
 // **** Variables **** //
 
 const app = express();
@@ -44,10 +45,22 @@ app.use(express.json());
 app.use(express.urlencoded({extended: true}));
 app.use(cookieParser(EnvVars.CookieProps.Secret));
 app.use(cors());
-// Show routes called in console during development
+// // Show routes called in console during development
 if (EnvVars.NodeEnv === NodeEnvs.Dev.valueOf()) {
   app.use(morgan('dev'));
 }
+// database
+async function connect(){
+  try {
+    await mongoose.connect("mongodb+srv://longvunguyen2003:longvu9953@cluster0.y5kegn3.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0");
+    console.log("CONNECTED")
+    return;
+  }
+  catch (e) {
+    console.log(e)
+  }
+}
+connect()
 
 // Security
 if (EnvVars.NodeEnv === NodeEnvs.Production.valueOf()) {
@@ -150,12 +163,15 @@ io.on("connection", (socket: socketio.Socket) => {
     socket.to(roomId).emit('found-video',videoId);
   });
   socket.on("video-seek", (roomId, timeToSeek) => {
+    console.log("video seek")
     socket.to(roomId).emit("video-seek", timeToSeek);
   });
   socket.on('video-stop', (roomId) => {
+    console.log("video stop")
     socket.to(roomId).emit("video-stop");
   });
   socket.on("video-play", (roomId) => {
+    console.log("video-play")
     socket.to(roomId).emit("video-play");
   });
   socket.on("peer-success", (id:string) => {
@@ -275,8 +291,20 @@ io.on("connection", (socket: socketio.Socket) => {
   socket.on("follow-dup", (roomId:string) => {
     socket.to(roomId).emit("follow-dup")
   })
+  socket.on("continue-video", (roomId: string, videoId: string, timeStamp: number) =>{
+    io.to(roomId).emit("sharing");
+    setTimeout(() => {
+      io.to(roomId).emit("found-video", videoId);
+      setTimeout(() => {
+        io.to(roomId).emit("video-seek", timeStamp);
+      }, 1000);
+    }, 1000)
+  });
   socket.on("unfollowed", (uid: string, uid2: string) => {
     socket.to(uid).emit("unfollowed", uid2)
+  });
+  socket.on("save-vid", (socketId: string) => {
+    io.to(socketId).emit("save-vid");
   })
 });
 

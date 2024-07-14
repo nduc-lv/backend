@@ -1,16 +1,17 @@
 import User from "@src/models/User";
 import asyncHandler from "express-async-handler"
 import { Request, Response } from 'express';
-import { hashSync, compareSync } from "bcrypt-ts";
+import bcrypt from "bcrypt";
 import jwt from "jsonwebtoken"
 
 interface SignupInterface {
     name: string;
     email: string;
     password: string;
-    age: number;
+    dateOfBirth: string;
     gender: number;
     sexualInterests: number;
+    language: number;
 }
 interface LoginInterface {
     email: string;
@@ -29,11 +30,12 @@ export const signUp  = asyncHandler(async (req: Request<object, object, SignupIn
         const info = {
             name: req.body.name,
             email: req.body.email,
-            password: hashSync(req.body.password, 10),
-            age: req.body.age,
+            password: bcrypt.hashSync(req.body.password, 10),
+            dateOfBirth: req.body.dateOfBirth,
             gender: req.body.gender,
             token: null,
             sexualInterests: req.body.sexualInterests,
+            language: req.body.language,
             followed: [],
         }
         const newUser = new User(info);
@@ -50,7 +52,7 @@ export const login = asyncHandler(async (req: Request<object, object, LoginInter
     const password = req.body.password;
     const user = await User.findOne({email: email});
     if (user && user.password){
-        const isSame = compareSync(password, user?.password);
+        const isSame = bcrypt.compareSync(password, user?.password);
         if (isSame) {
             const token = jwt.sign({id: user._id}, "hello", {
                 expiresIn: '30 days',
@@ -102,22 +104,45 @@ export const getFollowers = asyncHandler(async (req: Request, res: Response<obje
 });
 
 export const addFollow = asyncHandler(async (req: Request<object,object, {peerId: string}>, res: Response<object, Record<string, {id: string}>>) => {
+    console.log(res.locals.user.id);
+    console.log(req.body.peerId);
     await User.findByIdAndUpdate(res.locals.user.id, { $push: { followed: req.body.peerId } });
+    await User.findByIdAndUpdate(req.body.peerId, {$push: {followed: res.locals.user.id}});
     res.status(200).json({
         message: "Success"
     })
 });
 
 export const removeFollow = asyncHandler(async (req: Request<object, object, {peerId: string}>, res: Response<object, Record<string, {id: string}>>) => {
-    await User.findByIdAndUpdate(res.locals.user.id, { $pullAll: {followed: req.body.peerId}});
+    await User.findByIdAndUpdate(res.locals.user.id, { $pullAll: {followed: [req.body.peerId]}});
+    await User.findByIdAndUpdate(req.body.peerId, {$pullAll: {followed: [res.locals.user.id]}});
     res.status(200).json({
         message: "success"
     });
     return;
 })
 
-export const getInfo = asyncHandler(async (req: Request<object, object, {userId: string}>, res: Response<object, Record<string, {id: string}>>) => {
-    const user = await User.findById(req.body.userId).exec();
+export const getInfo = asyncHandler(async (req: Request<{userId: string}, object, object>, res: Response<object, Record<string, {id: string}>>) => {
+    const user = await User.findById(req.params.userId).exec();
+    if (!user) {
+        res.status(404).json({
+            message: "User not found",
+        })
+        return;
+    }
+    res.status(200).json({
+        uid: user._id,
+        name: user?.name,
+        gender: user?.gender,
+        dateOfBirth: user?.dateOfBirth,
+        language: user?.language,
+        sexualInterests: user?.sexualInterests,
+    });
+    return;
+});
+
+export const getMyInfo = asyncHandler(async (req: Request, res: Response<object, Record<string, {id: string}>>) => {
+    const user = await User.findById(res.locals.user.id).exec();
     if (!user) {
         res.status(404).json({
             message: "User not found",
@@ -127,9 +152,10 @@ export const getInfo = asyncHandler(async (req: Request<object, object, {userId:
     res.status(200).json({
         name: user?.name,
         gender: user?.gender,
-        age: user?.age,
+        dateOfBirth: user?.dateOfBirth,
         language: user?.language,
         sexualInterests: user?.sexualInterests,
+        uid: user._id,
     });
     return;
 });
